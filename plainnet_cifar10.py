@@ -1,7 +1,6 @@
 import  tensorflow as tf
 from    tensorflow import keras
 from    tensorflow.keras import layers, Sequential
-from    keras_sequential_ascii import keras2ascii
 from    keras.initializers import VarianceScaling, Orthogonal
 
 class BasicBlock(layers.Layer):
@@ -41,7 +40,7 @@ class BasicBlock(layers.Layer):
 
 class PlainNet(keras.Model):
     
-    def __init__(self, layer_dims, num_classes=10): #[[0], [1], [2], [3]]
+    def __init__(self, layer_dims, num_classes=10): #[[0], [1], [2]]
         super(PlainNet, self).__init__()
 
         self.stem = Sequential([layers.Conv2D(16, (3, 3), strides=2,
@@ -52,13 +51,13 @@ class PlainNet(keras.Model):
                                 layers.BatchNormalization(),
                                 layers.Activation('relu')])
 
-        self.layer1 = self.build_resblock(16, layer_dims[0])
-        self.layer2 = self.build_resblock(32, layer_dims[1], stride=2)
-        self.layer3 = self.build_resblock(64, layer_dims[2], stride=2)
+        self.layer1 = self.build_plablock(16, layer_dims[0])
+        self.layer2 = self.build_plablock(32, layer_dims[1], stride=2)
+        self.layer3 = self.build_plablock(64, layer_dims[2], stride=2)
 
-        #output: [b, 512, h, w] =>  [b, 512]
+        #output: [b, 64, h, w] =>  [b, 512]
         self.avgpool = layers.GlobalAveragePooling2D()
-        # [b, 512] => [b, num_classes]
+        # [b, 64] => [b, num_classes]
         self.fc = layers.Dense(num_classes,
                                kernel_regularizer=
                                keras.regularizers.l2(0.0005))
@@ -77,16 +76,16 @@ class PlainNet(keras.Model):
 
         return x
 
-    def build_resblock(self, filter_num, blocks, stride=1):
+    def build_plablock(self, filter_num, blocks, stride=1):
 
-        res_blocks = Sequential()
-        #可能有下采样
-        res_blocks.add(BasicBlock(filter_num, stride))
+        pla_blocks = Sequential()
+
+        pla_blocks.add(BasicBlock(filter_num, stride))
 
         for _ in range(1, blocks):
-            res_blocks.add(BasicBlock(filter_num, stride=1))
+            pla_blocks.add(BasicBlock(filter_num, stride=1))
 
-        return  res_blocks
+        return  pla_blocks
 
 def plainnet20():
 
